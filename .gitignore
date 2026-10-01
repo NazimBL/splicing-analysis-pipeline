@@ -16,3 +16,13 @@ __pycache__/
 *.pyc
 .env
 .venv
+
+# Claude Code, server-specific
+CLAUDE.local.md
+.claude/settings.local.json
+
+# Pipeline outputs
+*.fastq.gz
+results/
+work/
+.nextflow*
