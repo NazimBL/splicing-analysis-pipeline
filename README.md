@@ -9,10 +9,9 @@ files, with no script edits per dataset.
 > rMATS steps and the Nextflow workflow are not written yet. See [Status](#status).
 
 ## Why this exists
-
 An earlier pipeline for these datasets was hand-edited for each dataset and silently lost
-reads. Rebuilding it, we keep to these rules. Some are already in the scripts; the checks for the
-rest are listed in [Status](#status).
+reads. This one follows these rules. Those marked in the status table as not yet written are
+design rules, not yet enforced by code.
 
 - **Read length** is measured on the raw reads and passed to rMATS. A wrong `--readLength`
   makes rMATS silently drop reads.
@@ -110,5 +109,5 @@ For each sample this runs FastQC on the raw reads, fastp, then `bin/star_align.s
 
 ## Contributing
 
-Open an issue or a pull request. Please do not commit data or results: FASTQ, BAM, rMATS
-output tables and figures are excluded by `.gitignore`.
+Open an issue or a pull request. Please do not commit data or results (FASTQ, BAM, rMATS
+output tables); `.gitignore` excludes the common formats.
