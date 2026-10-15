@@ -1,0 +1,14 @@
+# H5N1 (GSE287709 / PRJNA1214282), whole blood, SMART-Seq v4 + Nextera XT, PE 101.
+# Scope and sample rules: docs/DECISIONS.md (2026-10-15). Samplesheet: build_samplesheet.py.
+dataset: h5n1
+samplesheet: datasets/h5n1/samplesheet.csv
+contrasts: datasets/h5n1/contrasts.csv
+# Contrasts compare `timepoint`; b1 is the earlier timepoint (rMATS IncLevelDifference = b1 - b2).
+# Pairing for --paired-stats is by `animal`; animals missing from either group are dropped.
+group_column: timepoint
+pair_column: animal
+
+raw_dir: /scratch/psinguru/splicing_project/raw/h5n1_p24240   # read-only
+fasta: /scratch/references/mmul10_build/Mmul_10.fa              # Ensembl 110 Mmul_10 toplevel
+gtf: /scratch/references/mmul10_build/Mmul_10.gtf               # full Ensembl 110 GTF
+outdir: /scratch/nazimb/splicing/results/h5n1
