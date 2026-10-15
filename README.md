@@ -5,6 +5,12 @@ This repository provides a **modular**, and **reproducible** pipeline for perfor
 
 This workflow was originally developed for the splicing analysis of multiple viral infection models in *Macaca mulatta* (rhesus macaque), but the scripts can adapted to *any species or dataset.
 
+## What we are doing
+- **Question:** which genes are alternatively spliced during viral infection in macaques (SIV, SARS-CoV-2, H5N1, mpox).
+- **Approach:** STAR alignment, then rMATS for splicing events, with one config folder per dataset in `datasets/<virus>/`.
+- **Status:** the CPU pipeline is the current focus; a GPU version (NVIDIA Parabricks) is next, then variant calling.
+- **Details:** the full design, the rules that keep results correct, and the bugs from the earlier pipeline are in [`docs/PROJECT_BRIEF.md`](docs/PROJECT_BRIEF.md). Analysis decisions are logged in [`docs/DECISIONS.md`](docs/DECISIONS.md).
+
 ---
 #  Features
 
