@@ -82,7 +82,7 @@ Each dataset is described by three files in `datasets/<virus>/`:
 
 - `samplesheet.csv`: sample, animal, tissue, timepoint, and the FASTQ file names.
 - `contrasts.csv`: the two groups to compare, and whether the comparison is paired by animal.
-- `params.yaml`: input and output locations.
+- `params.yaml`: the dataset's file names and the columns that define groups and pairs.
 
 Align all samples of a dataset (resumable; a finished sample is skipped):
 

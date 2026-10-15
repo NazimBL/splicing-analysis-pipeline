@@ -1,7 +1,7 @@
 #!/bin/bash
 # Interim driver until the Nextflow pipeline exists: FastQC(raw) -> fastp -> STAR
 # for every sample in a samplesheet, N samples at a time. Same per-sample scripts
-# and settings the pipeline will use (docs/DECISIONS.md, docs/walkthrough_s001.md).
+# and settings the pipeline will use.
 #
 # Resumable: a sample whose BAM index and Log.final.out exist is skipped.
 # Trimmed FASTQs are deleted once the sample's BAM is indexed.

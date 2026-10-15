@@ -17,16 +17,11 @@ __pycache__/
 .env
 .venv
 
-# Claude Code, server-specific
-CLAUDE.local.md
-.claude/settings.local.json
-
 # Pipeline outputs
 *.fastq.gz
 results/
 work/
 .nextflow*
 
-# Private notes (decisions, meeting notes, walkthroughs): never published
-private/
+# Editor swap files
 *.swp

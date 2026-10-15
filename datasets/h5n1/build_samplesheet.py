@@ -4,13 +4,14 @@
 File names look like  p24240-s001_1E9-7442-D0_S50_L004_R1_001.fastq.gz
                       <project>-<sample>_<group>-<animal>-<timepoint>_<S#>_<lane>_<read>_001
 
-Rules (see docs/DECISIONS.md, 2026-10-01 and 2026-10-15):
+Rules:
   - keep timepoints D0, D1, D2, D4;
   - groups 1E7/1E9 are rhesus (dose in the name), V/VII are cynomolgus;
   - DVS31 and DV531 are one animal (typo), stored as DV531;
   - a sample without R2 is excluded (s036), so no contrast mixes layouts.
 
-FASTQ paths are written relative to `raw_dir` in params.yaml.
+FASTQ columns hold file names only; the samplesheet is used together with the raw_dir
+that is passed to the alignment driver.
 
 Usage: build_samplesheet.py <raw_dir> > samplesheet.csv
 """

@@ -1,7 +1,7 @@
 #!/bin/bash
 # Align one paired-end sample with STAR, timed with /usr/bin/time -v.
 #
-# One parameter set for every sample, layout and aligner (see docs/DECISIONS.md):
+# One parameter set for every sample, layout and aligner:
 #  - 2-pass (--twopassMode Basic): pass 1 finds this sample's novel junctions,
 #    pass 2 realigns with them added, so reads across new junctions are placed.
 #  - ENCODE long-RNA filters (STAR manual 3.3.2), minus --outFilterType BySJout,

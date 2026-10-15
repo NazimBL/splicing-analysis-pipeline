@@ -1,5 +1,5 @@
 # H5N1 (GSE287709 / PRJNA1214282), whole blood, SMART-Seq v4 + Nextera XT, PE 101.
-# Scope and sample rules: docs/DECISIONS.md (2026-10-15). Samplesheet: build_samplesheet.py.
+# The samplesheet is built by build_samplesheet.py from the raw FASTQ file names.
 dataset: h5n1
 samplesheet: datasets/h5n1/samplesheet.csv
 contrasts: datasets/h5n1/contrasts.csv
@@ -8,7 +8,5 @@ contrasts: datasets/h5n1/contrasts.csv
 group_column: timepoint
 pair_column: animal
 
-raw_dir: /scratch/psinguru/splicing_project/raw/h5n1_p24240   # read-only
-fasta: /scratch/references/mmul10_build/Mmul_10.fa              # Ensembl 110 Mmul_10 toplevel
-gtf: /scratch/references/mmul10_build/Mmul_10.gtf               # full Ensembl 110 GTF
-outdir: /scratch/nazimb/splicing/results/h5n1
+# Input and output locations are not stored here. Pass them on the command line
+# (see the README, "Running a dataset").
