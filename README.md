@@ -6,10 +6,65 @@ This repository provides a **modular**, and **reproducible** pipeline for perfor
 This workflow was originally developed for the splicing analysis of multiple viral infection models in *Macaca mulatta* (rhesus macaque), but the scripts can adapted to *any species or dataset.
 
 ## What we are doing
-- **Question:** which genes are alternatively spliced during viral infection in macaques (SIV, SARS-CoV-2, H5N1, mpox).
-- **Approach:** STAR alignment, then rMATS for splicing events, with one config folder per dataset in `datasets/<virus>/`.
-- **Status:** the CPU pipeline is the current focus; a GPU version (NVIDIA Parabricks) is next, then variant calling.
-- **Details:** the full design, the rules that keep results correct, and the bugs from the earlier pipeline are in [`docs/PROJECT_BRIEF.md`](docs/PROJECT_BRIEF.md). Analysis decisions are logged in [`docs/DECISIONS.md`](docs/DECISIONS.md).
+The pipeline runs STAR alignment and rMATS splicing analysis on bulk RNA-seq for four macaque
+viral-infection datasets (SIV, SARS-CoV-2, H5N1, mpox; H5N1 includes cynomolgus). It works on
+any dataset through config files. It replaces an earlier PhD pipeline (git history at commit
+d7a1d7b), which was hand-edited for each dataset and silently lost reads.
+
+### Order of work
+1. **CPU pipeline (current):** STAR + rMATS, correct and documented, with runtime measured per step.
+2. **GPU:** the same pipeline with NVIDIA Parabricks for alignment; compare speed and concordance.
+3. **Later:** variant calling, then AlphaGenome.
+
+### Goals
+- One command per dataset. Nobody edits scripts to run a new dataset.
+- Anyone can rerun it: pinned environment, configs in the repo, no hardcoded paths.
+- Data and results are never committed: FASTQ, BAM, rMATS tables, figures.
+
+### Environment
+- conda env `splice`, built from `envs/splice.yaml`; exact versions in `envs/splice.lock.yaml`:
+  STAR 2.7.11b, rMATS 4.4.0 + PAIRADISE 1.26.0 (needed by `--paired-stats`),
+  Trimmomatic 0.39, samtools, FastQC, MultiQC, seqkit, pigz.
+- Nextflow 26.04.6 (pinned with NXF_VER), Java >= 17.
+- Reference: Ensembl 110 Mmul_10, toplevel FASTA plus the full GTF. Do not use a Cell Ranger
+  filtered GTF, which drops transcripts that splicing analysis needs.
+- STAR index built with STAR 2.7.11b and `--sjdbOverhang 100`. An index from STAR older than
+  2.7.4a will not load.
+
+### Design
+One config folder per dataset, `datasets/<virus>/`:
+- `samplesheet.csv`: sample, animal, tissue, timepoint, fastq paths.
+- `contrasts.csv`: which two groups to compare, and whether the comparison is paired by animal.
+- `params.yaml`.
+
+The pipeline works out the rest itself and refuses to run on inconsistent input:
+- Single- vs paired-end: from whether a second FASTQ exists. A contrast must not mix layouts.
+- Read length: measured on the raw reads and passed to rMATS together with
+  `--variable-read-length`. Warn if the groups in a contrast differ.
+- Strandedness: inferred from STAR `--quantMode GeneCounts` (ReadsPerGene column 4 vs
+  column 3). Stop if the samples disagree.
+
+Always:
+- rMATS runs with `--allow-clipping`.
+- Use `--paired-stats` wherever the same animals appear in both groups, with b1 and b2
+  ordered by animal.
+- One STAR index and one parameter set for every layout: `--twopassMode Basic`, read
+  groups, MD tags, GeneCounts.
+- rMATS runs `--task prep` once per BAM, then one `--task post --statoff` per virus x tissue
+  (a shared event set), then `--task stat` for each contrast. This keeps event IDs comparable
+  across timepoints.
+- Output paths are generated from `contrasts.csv`, never typed by hand.
+
+### Bugs from the earlier pipeline that must not return
+- Copy-pasted output folder names, which let one comparison overwrite another.
+- `--readLength` not matching the real reads. rMATS silently drops every read whose length
+  differs, and also drops soft-clipped reads unless `--allow-clipping` is set (it always drops
+  multi-mapped reads, NH != 1).
+- Strandedness hardcoded to `fr-unstranded`.
+- Animals sampled at several timepoints analysed as unpaired groups.
+- Single-end and paired-end data aligned with different STAR settings.
+- A separate rMATS run per comparison, so event IDs didn't match across comparisons.
+- Three filter scripts with three different thresholds, and no read-coverage floor.
 
 ---
 #  Features

@@ -26,3 +26,7 @@ CLAUDE.local.md
 results/
 work/
 .nextflow*
+
+# Private notes (decisions, meeting notes, walkthroughs): never published
+private/
+*.swp
