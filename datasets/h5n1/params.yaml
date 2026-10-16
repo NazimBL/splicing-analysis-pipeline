@@ -10,3 +10,7 @@ pair_column: animal
 
 # Input and output locations are not stored here. Pass them on the command line
 # (see the README, "Running a dataset").
+
+# Library prep: Nextera XT, so fastp trims the Nextera transposase sequence
+# (seen in FastQC on raw s001, 2026-10-15).
+adapter: CTGTCTCTTATACACATCT
