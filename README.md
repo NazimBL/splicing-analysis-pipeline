@@ -5,8 +5,8 @@ events. It is set up for four macaque (*Macaca mulatta*) viral-infection dataset
 SARS-CoV-2, H5N1, mpox; H5N1 includes cynomolgus). It works on any dataset through config
 files, with no script edits per dataset.
 
-> **Status: under construction.** The alignment step and the environment are in place. The
-> rMATS steps and the Nextflow workflow are not written yet. See [Status](#status).
+> **Status: under construction.** The environment and the Nextflow workflow up to alignment
+> and QC are in place. The rMATS steps are not written yet. See [Status](#status).
 
 ## Why this exists
 An earlier pipeline for these datasets was hand-edited for each dataset and silently lost
@@ -17,7 +17,8 @@ design rules, not yet enforced by code.
   makes rMATS silently drop reads.
 - **Clipped reads** are kept with `--allow-clipping`. Multi-mapped reads (NH != 1) are always
   dropped by rMATS.
-- **Strandedness** is inferred from STAR gene counts, not hardcoded.
+- **Strandedness** is inferred from STAR gene counts, not hardcoded. The run stops if samples
+  disagree.
 - **Layouts are not mixed.** Single-end and paired-end samples are never compared in one
   contrast. Both layouts use the same STAR settings.
 - **Paired animals** are analysed as paired (`--paired-stats`), not as independent groups.
@@ -44,13 +45,14 @@ FastQC runs on the raw and trimmed reads for QC.
 | Path | Contents |
 |------|----------|
 | `envs/` | `splice.yaml` (the environment, with pinned key tools) and `splice.lock.yaml` (exact versions) |
-| `bin/` | Command-line scripts: STAR index build, per-sample alignment, and the sample driver |
+| `main.nf`, `nextflow.config`, `modules/` | The Nextflow workflow and its processes |
+| `bin/` | Scripts the workflow calls (per-sample alignment, strandedness), the STAR index build, and the interim driver `align_all.sh` |
 | `datasets/<virus>/` | One folder per dataset: `samplesheet.csv`, `contrasts.csv`, `params.yaml` |
 
 ## Requirements
 
 - Linux, conda or mamba.
-- Java 17 or newer, and Nextflow 26.04.6 once the workflow exists.
+- Java 17 or newer, and Nextflow 26.04.6 or newer.
 
 Create the environment from the pinned lock file:
 
@@ -83,15 +85,31 @@ Each dataset is described by three files in `datasets/<virus>/`:
 - `contrasts.csv`: the two groups to compare, and whether the comparison is paired by animal.
 - `params.yaml`: the dataset's file names and the columns that define groups and pairs.
 
-Align all samples of a dataset (resumable; a finished sample is skipped):
+Run the workflow from the repository root, inside the `splice` environment:
 
 ```bash
-bin/align_all.sh <samplesheet.csv> <raw_fastq_dir> <star_index> <outdir> [n_parallel] [star_threads]
+nextflow run main.nf -params-file datasets/<virus>/params.yaml \
+    --raw_dir <raw_fastq_dir> --star_index <star_index> --outdir <outdir> [-resume]
 ```
 
-For each sample this runs FastQC on the raw reads, fastp, then `bin/star_align.sh` (STAR
-2-pass, with the same settings for every sample). It writes BAMs and STAR logs under
-`<outdir>/star/`.
+For each sample it runs FastQC on the raw reads, then fastp and `bin/star_align.sh` (STAR
+2-pass, with the same settings for every sample) in one task, so trimmed reads are deleted
+as soon as the sample is aligned. It then infers strandedness for the whole dataset and
+writes a MultiQC report. Outputs:
+
+| Path under `<outdir>` | Contents |
+|---|---|
+| `align/star/<sample>/` | Sorted, indexed BAM, STAR logs, gene counts, junctions |
+| `align/fastp/`, `align/fastqc_raw/` | Trimming and raw-read QC reports |
+| `qc/strandedness.tsv`, `qc/lib_type.txt` | Per-sample strand fractions and the rMATS `--libType` |
+| `qc/<dataset>_multiqc.html` | QC report over FastQC, fastp and STAR |
+| `pipeline_info/` | Nextflow timeline, resource report and trace |
+
+The workflow uses at most 48 CPUs in total (`--max_cpus`) and 14 threads per STAR task
+(`--star_threads`). `-resume` skips samples that are already done.
+
+`bin/align_all.sh` runs the same steps without Nextflow. Its BAM records, gene counts and
+junctions are identical to the workflow's.
 
 ## Status
 
@@ -99,10 +117,10 @@ For each sample this runs FastQC on the raw reads, fastp, then `bin/star_align.s
 |------|-------|
 | Environment (`envs/`) | done |
 | STAR index build (`bin/build_star_index.sh`) | done |
-| Trimming, QC, alignment (`bin/align_all.sh`) | done, run by hand per dataset |
+| Trimming, QC, alignment (Nextflow) | done |
+| Strandedness check | done |
 | rMATS prep / post / stat | not yet written |
-| Nextflow workflow | not yet written |
-| Read-length, strandedness and layout checks | not yet written (`bin/star_align.sh` writes the GeneCounts they need) |
+| Read-length and layout checks | not yet written |
 | Single-end alignment | not yet written (`bin/star_align.sh` is paired-end only) |
 | GPU alignment (NVIDIA Parabricks) | planned, to compare speed and concordance with the CPU run |
 | Variant calling, then AlphaGenome | later |
